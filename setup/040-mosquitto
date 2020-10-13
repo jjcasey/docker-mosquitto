@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+set -x
+
+for a in passwd group shadow ; do
+	cat /tmp/identity/$a >> /etc/$a
+done
+
+mv /usr/sbin/policy-rc.d.disabled /usr/sbin/policy-rc.d
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
+       	mosquitto
+apt-get -y -u dist-upgrade
+apt-get clean
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+sed -i -e '/^\s*log_dest\s/d' /etc/mosquitto/mosquitto.conf
+
+/usr/local/bin/docker-wipelogs
+
+mv /usr/sbin/policy-rc.d /usr/sbin/policy-rc.d.disabled
